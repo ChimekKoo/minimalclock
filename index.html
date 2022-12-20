@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Minimal Clock</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+        
+        body {
+            font-family: 'Open Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--fg);
+        }
+
+        .align-center {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%);
+        }
+
+        .material-symbols-outlined {
+            color: var(--fg2);
+            cursor: pointer;
+            font-size: 1.3em;
+            margin-right: 0.075em;
+        }
+        
+        #clock {
+            font-size: 10em;
+        }
+    </style>
+
+</head>
+<body>
+    
+    <div class="align-center" id="clock"></div>
+
+    <div class="align-upright">
+        <span class="material-symbols-outlined" onclick="toggle_theme()">contrast</span>
+        <span class="material-symbols-outlined">settings</span>
+        <a href="https://github.com/chimekkoo/minimalclock" target="_blank"><span class="material-symbols-outlined">info</span></a>
+    </div>
+
+    <script>
+        var BG_LIGHT  = "#eeeeee";
+        var FG_LIGHT  = "#222222";
+        var FG2_LIGHT = "#666666";
+
+        var BG_DARK  = "#222222";
+        var FG_DARK  = "#eeeeee";
+        var FG2_DARK = "#aaaaaa";
+
+        var r = document.querySelector(":root");
+        r.style.setProperty("--bg", BG_LIGHT);
+        r.style.setProperty("--fg", FG_LIGHT);
+        r.style.setProperty("--fg2", FG2_LIGHT);
+
+        function toggle_theme() {
+            var r = document.querySelector(":root");
+            
+            var bg = getComputedStyle(r).getPropertyValue("--bg");
+            var fg = getComputedStyle(r).getPropertyValue("--fg");
+            var fg2 = getComputedStyle(r).getPropertyValue("--fg2");
+
+            if (bg == BG_LIGHT) bg = "light";
+            else if (bg == BG_DARK) bg = "dark";
+
+            if (fg == FG_LIGHT) fg = "light";
+            else if (fg == FG_DARK) fg = "dark";
+            
+            if (fg2 == FG2_LIGHT) fg2 = "light";
+            else if (fg2 == FG2_DARK) fg2 = "dark";
+
+            if (bg == "dark") {
+                r.style.setProperty("--bg", BG_LIGHT);
+                r.style.setProperty("--fg", FG_LIGHT);
+                r.style.setProperty("--fg2", FG2_LIGHT);
+            } else {
+                r.style.setProperty("--bg", BG_DARK);
+                r.style.setProperty("--fg", FG_DARK);
+                r.style.setProperty("--fg2", FG2_DARK);
+            }
+        }
+
+        update_clock();
+        setInterval(update_clock, 100);
+
+        function add_leading_zeros(num, len) {
+            num = num.toString();
+            while (num.length < len) {
+                num = "".concat("0", num);
+            }
+            return num;
+        }
+
+        function update_clock() {
+            var clk = document.getElementById("clock");
+            var currentdate = new Date();
+            var h = add_leading_zeros(currentdate.getHours(), 2);
+            var m = add_leading_zeros(currentdate.getMinutes(), 2);
+            var s = add_leading_zeros(currentdate.getSeconds(), 2);
+            var time = h+":"+m+":"+s;
+            clk.innerHTML = time;
+        }
+    </script>
+
+</body>
+</html>

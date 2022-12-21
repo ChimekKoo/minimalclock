@@ -35,6 +35,33 @@
         #clock {
             font-size: 10em;
         }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5); // add opacity to background
+        }
+
+        .modal-content {
+            background-color: var(--bg);
+            color: var(--fg);
+            padding: 1em;
+            border: 1px solid var(--fg2);
+            border-radius: 5px;
+            width: 40%;
+        }
+
+        @media only screen and (max-width: 700px) {
+            .modal-content {
+                width: 90%;
+            }
+        }
     </style>
 
 </head>
@@ -44,8 +71,17 @@
 
     <div class="align-upright">
         <span class="material-symbols-outlined" onclick="toggle_theme()">contrast</span>
-        <span class="material-symbols-outlined">settings</span>
+        <span class="material-symbols-outlined" onclick="open_settings_modal()">settings</span>
         <a href="https://github.com/chimekkoo/minimalclock" target="_blank"><span class="material-symbols-outlined">info</span></a>
+    </div>
+
+    <div id="settings-modal" class="modal">
+        <div class="modal-content align-center">
+            <span class="material-symbols-outlined" style="float: right" onclick="close_settings_modal()">close</span>
+            <div style="font-size: 1.5em; margin-bottom: 1px">Settings</div>
+            <br>
+            <i>Still nothing...</i>
+        </div>
     </div>
 
     <script>
@@ -108,6 +144,20 @@
             var s = add_leading_zeros(currentdate.getSeconds(), 2);
             var time = h+":"+m+":"+s;
             clk.innerHTML = time;
+        }
+
+        function open_settings_modal() {
+            document.getElementById("settings-modal").style.display = "block";
+        }
+
+        function close_settings_modal() {
+            document.getElementById("settings-modal").style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById("settings-modal")) {
+                close_settings_modal();
+            }
         }
     </script>
 

@@ -23,6 +23,7 @@
             top: 50%;
             -webkit-transform: translate(-50%, -50%);
             transform: translate(-50%, -50%);
+            text-align: center;
         }
 
         .material-symbols-outlined {
@@ -34,6 +35,22 @@
         
         #clock {
             font-size: 10em;
+        }
+        #date {
+            font-size: 1.5em;
+        }
+        @media only screen and (max-width: 650px) {
+            #clock {
+                font-size: 5em;
+            }
+        }
+        @media only screen and (max-width: 330px) {
+            #clock {
+                font-size: 2.5em;
+            }
+            #date {
+                font-size: 1em;
+            }
         }
 
         .modal {
@@ -57,6 +74,57 @@
             width: 40%;
         }
 
+        .checkbox-label {
+            display: inline-block;
+            position: relative;
+            top: 2px;
+            left: 8px;
+            cursor: pointer;
+        }
+
+        input[type="checkbox"] {
+            position: relative;
+            cursor: pointer;
+        }
+        input[type=checkbox]:before {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 0;
+            left: 0;
+            border: 1px solid var(--fg2);
+            border-radius: 2px;
+            background-color: #eeeeee;
+        }
+        input[type=checkbox]:checked:before {
+            content: "";
+            display: block;
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 0;
+            left: 0;
+            border: 1px solid var(--fg2);
+            border-radius: 2px;
+            background-color: #0f8bff;
+        }
+        input[type=checkbox]:checked:after {
+            content: "";
+            display: block;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 1px 1px 0;
+            -webkit-transform: rotate(45deg);
+            -ms-transform: rotate(45deg);
+            transform: rotate(45deg);
+            position: absolute;
+            top: 2px;
+            left: 6px;
+        }
+
         @media only screen and (max-width: 700px) {
             .modal-content {
                 width: 90%;
@@ -67,20 +135,30 @@
 </head>
 <body>
     
-    <div class="align-center" id="clock"></div>
+    <div class="align-center">
+        <div id="clock"></div>
+        <div id="date"></div>
+    </div>
 
-    <div class="align-upright">
+    <div>
         <span class="material-symbols-outlined" onclick="toggle_theme()">contrast</span>
         <span class="material-symbols-outlined" onclick="open_settings_modal()">settings</span>
         <a href="https://github.com/chimekkoo/minimalclock" target="_blank"><span class="material-symbols-outlined">info</span></a>
     </div>
 
     <div id="settings-modal" class="modal">
-        <div class="modal-content align-center">
+        <div class="modal-content align-center" style="text-align: left">
             <span class="material-symbols-outlined" style="float: right" onclick="close_settings_modal()">close</span>
-            <div style="font-size: 1.5em; margin-bottom: 1px">Settings</div>
+            <div style="font-size: 1.5em;">Settings</div>
             <br>
-            <i>Still nothing...</i>
+            <input type="checkbox" id="check-showdate">
+            <span class="checkbox-label" onclick="toggleCheckbox('check-showdate')">Show date</span>
+            <br>
+            <input type="checkbox" id="check-dark">
+            <span class="checkbox-label" onclick="toggleCheckbox('check-dark')">Dark mode (light if not checked)</span>
+            <br>
+            <br>
+            <input type="text" style="width: 80%; font-size: 1em" value="psk" id="url" disabled>
         </div>
     </div>
 
@@ -93,10 +171,27 @@
         var FG_DARK  = "#eeeeee";
         var FG2_DARK = "#aaaaaa";
 
-        var r = document.querySelector(":root");
-        r.style.setProperty("--bg", BG_LIGHT);
-        r.style.setProperty("--fg", FG_LIGHT);
-        r.style.setProperty("--fg2", FG2_LIGHT);
+        var weekday = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        
+        if (getArg("showdate") == "true" || !["true", "false"].includes(getArg("showdate"))) {
+            document.getElementById("date").style.display = "block";
+            document.getElementById("check-showdate").checked = true;
+        } else if (getArg("showdate") == "false") {
+            document.getElementById("date").style.display = "none";
+            document.getElementById("check-showdate").checked = false;
+        }
+
+        if (getArg("theme") == "light" || !["light","dark"].includes(getArg("theme"))) {
+            document.querySelector(":root").style.setProperty("--bg", BG_LIGHT);
+            document.querySelector(":root").style.setProperty("--fg", FG_LIGHT);
+            document.querySelector(":root").style.setProperty("--fg2", FG2_LIGHT);
+            document.getElementById("check-dark").checked = false;
+        } else if (getArg("theme") == "dark") {
+            document.querySelector(":root").style.setProperty("--bg", BG_DARK);
+            document.querySelector(":root").style.setProperty("--fg", FG_DARK);
+            document.querySelector(":root").style.setProperty("--fg2", FG2_DARK);
+            document.getElementById("check-dark").checked = true;
+        }
 
         function toggle_theme() {
             var r = document.querySelector(":root");
@@ -123,10 +218,12 @@
                 r.style.setProperty("--fg", FG_DARK);
                 r.style.setProperty("--fg2", FG2_DARK);
             }
+
+            updateThemeCheckbox();
         }
 
-        update_clock();
-        setInterval(update_clock, 100);
+        updateClock();
+        setInterval(updateClock, 100);
 
         function add_leading_zeros(num, len) {
             num = num.toString();
@@ -136,14 +233,28 @@
             return num;
         }
 
-        function update_clock() {
-            var clk = document.getElementById("clock");
+        function updateClock() {
             var currentdate = new Date();
+
             var h = add_leading_zeros(currentdate.getHours(), 2);
             var m = add_leading_zeros(currentdate.getMinutes(), 2);
             var s = add_leading_zeros(currentdate.getSeconds(), 2);
             var time = h+":"+m+":"+s;
-            clk.innerHTML = time;
+            document.getElementById("clock").innerHTML = time;
+
+            var w = weekday[currentdate.getDay()];
+            var d = add_leading_zeros(currentdate.getDate(), 2);
+            var mo = add_leading_zeros(currentdate.getMonth()+1, 2);
+            var y = currentdate.getFullYear();
+            var date = y+"-"+mo+"-"+d+" · "+w;
+            document.getElementById("date").innerHTML = date;
+
+            history.replaceState({}, document.getElementsByTagName("title")[0].innerHTML, encodeArgs({
+                "theme": getComputedStyle(document.querySelector(":root")).getPropertyValue("--bg") == BG_DARK ? "dark" : "light",
+                "showdate": document.getElementById("date").style.display != "none"
+            }));
+
+            document.getElementById("url").value = location.protocol + '//' + location.host + location.pathname + location.search;
         }
 
         function open_settings_modal() {
@@ -154,10 +265,65 @@
             document.getElementById("settings-modal").style.display = "none";
         }
 
+        function encodeArgs(json) {
+            var res = [""];
+            var cnt = 0;
+            for (const property in json) {
+                cnt++;
+                res += [cnt==1 ? "?" : "&"] + [property+"="+json[property]];
+            }
+            console.log(res);
+            return res;
+        }
+
         window.onclick = function(event) {
             if (event.target == document.getElementById("settings-modal")) {
                 close_settings_modal();
             }
+        }
+
+        function updateThemeCheckbox() {
+            var bg = getComputedStyle(document.querySelector(":root")).getPropertyValue("--bg");
+            if (bg == BG_LIGHT) {
+                document.getElementById("check-dark").checked = false;
+            } else if (bg == BG_DARK) {
+                document.getElementById("check-dark").checked = true;
+            }
+        }
+
+        function updateShowDateCheckbox() {
+            var visible = document.getElementById("date").style.display == "block";
+            if (document.getElementById("date").style.display == "block") {
+                document.getElementById("check-showdate").checked = true;
+            } else if (document.getElementById("date").style.display == "none") {
+                document.getElementById("check-showdate").checked = false;
+            }
+        }
+
+        document.getElementById("check-dark").addEventListener("change", ev => {
+            toggle_theme();
+        });
+
+        document.getElementById("check-showdate").addEventListener("change", ev => {
+            if (document.getElementById("check-showdate").checked) {
+                document.getElementById("date").style.display = "block";
+            } else {
+                document.getElementById("date").style.display = "none";
+            }
+        });
+        
+        // https://stackoverflow.com/a/5448595
+        function getArg(parameterName) {
+            var result = null,
+                tmp = [];
+            location.search
+                .substr(1)
+                .split("&")
+                .forEach(function (item) {
+                  tmp = item.split("=");
+                  if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+                });
+            return result;
         }
     </script>
 

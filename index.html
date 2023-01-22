@@ -79,7 +79,6 @@
             position: relative;
             top: 2px;
             left: 8px;
-            cursor: pointer;
         }
 
         input[type="checkbox"] {
@@ -151,14 +150,16 @@
             <span class="material-symbols-outlined" style="float: right" onclick="close_settings_modal()">close</span>
             <div style="font-size: 1.5em;">Settings</div>
             <br>
-            <input type="checkbox" id="check-showdate">
-            <span class="checkbox-label" onclick="toggleCheckbox('check-showdate')">Show date</span>
-            <br>
             <input type="checkbox" id="check-dark">
             <span class="checkbox-label" onclick="toggleCheckbox('check-dark')">Dark mode (light if not checked)</span>
             <br>
+            <input type="checkbox" id="check-showdate">
+            <span class="checkbox-label" onclick="toggleCheckbox('check-showdate')">Show date</span>
             <br>
-            <input type="text" style="width: 80%; font-size: 1em" value="psk" id="url" disabled>
+            <br>
+            <span style="display: inline-block; font-size: 0.9em; margin-bottom: 6px">Copy URL with settings: <span id="url-copied" style="color: #00dd00; display: none">Copied!</span></span>
+            <br>
+            <input type="text" id="url" style="width: 95%; font-size: 1.1em; text-decoration: none; padding: 1px">
         </div>
     </div>
 
@@ -272,7 +273,6 @@
                 cnt++;
                 res += [cnt==1 ? "?" : "&"] + [property+"="+json[property]];
             }
-            console.log(res);
             return res;
         }
 
@@ -310,6 +310,12 @@
             } else {
                 document.getElementById("date").style.display = "none";
             }
+        });
+
+        document.getElementById("url").addEventListener("click", ev => {
+            navigator.clipboard.writeText(document.getElementById("url").value).then(() => {});
+            document.getElementById("url-copied").style.display = "inline";
+            setTimeout(() => {document.getElementById("url-copied").style.display = "none"}, 2000);
         });
         
         // https://stackoverflow.com/a/5448595
